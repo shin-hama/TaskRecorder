@@ -8,6 +8,7 @@ autopep8 = "*"
 flake8 = "*"
 
 [packages]
+rope = "*"
 
 [requires]
 python_version = "3.8"
