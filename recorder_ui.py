@@ -1,4 +1,4 @@
-import time
+import datetime
 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -10,7 +10,6 @@ class TaskRecorder(tk.Frame):
 
     def __init__(self, master=None):
         super().__init__(master)
-        self.pack()
 
         # columns name
         task_name = 'Task'
@@ -20,17 +19,27 @@ class TaskRecorder(tk.Frame):
         self.columns = (task_name, start_time, end_time, elapsed_time)
 
         # set widget
-        self.task_list = TaskList(master, self.columns)
+        self.task_name = tk.StringVar()
+        self.task_name.set('resting')
+        self.current_task = ttk.Label(master, textvariable=self.task_name)
+        self.current_task.grid(row=0, column=0)
         self.text_box = tk.Entry()
-        self.text_box.pack()
+        self.text_box.grid(row=1, column=0, columnspan=2)
 
-        button = tk.Button(master, text='add', command=self.add_task)
-        button.pack()
+        self.task_list = TaskList(master, self.columns)
+        self.task_list.table_widget.grid(row=0, column=2, rowspan=4)
 
-        button = tk.Button(master, text='delete', command=self.delete_task)
-        button.pack()
+        start_button = tk.Button(master, text='start', command=self.start_task)
+        start_button.grid(row=2, column=0)
 
-    def add_task(self):
+        end_button = tk.Button(master, text='end', command=self.end_task)
+        end_button.grid(row=2, column=1)
+        delete_button = tk.Button(master, text='delete',
+                                  command=self.delete_task)
+
+        delete_button.grid(row=3)
+
+    def start_task(self):
         """ Add task data in text box to Treeview
         """
         text = self.text_box.get()
@@ -39,10 +48,14 @@ class TaskRecorder(tk.Frame):
             self.text_box.delete(0, tk.END)
             return
 
+        self.task_name.set(text)
         self.task_list.insert(text)
 
         # Clear text box because make next usage to easier
         self.text_box.delete(0, tk.END)
+
+    def end_task(self):
+        pass
 
     def delete_task(self):
         index = self.Tasklist.curselection()
@@ -89,28 +102,28 @@ class TaskList(tk.Frame):
         self.columns = columns
 
         self.create_widget(master)
-        self.task_list.pack()
 
     def create_widget(self, master):
-        self.task_list = ttk.Treeview(master)
-        self.task_list['show'] = 'headings'
+        self.table_widget = ttk.Treeview(master)
+        self.table_widget['show'] = 'headings'
         self._set_columns()
 
     def _set_columns(self):
         """ Set columns name of Treeview
         """
-        self.task_list['columns'] = self.columns
+        self.table_widget['columns'] = self.columns
         # Set each columns width that is splitted by the number of columns
         width = 300 // len(self.columns)
         for col in self.columns:
-            self.task_list.heading(col, text=col)
-            self.task_list.column(col, width=width)
+            self.table_widget.heading(col, text=col)
+            self.table_widget.column(col, width=width)
 
     def insert(self, task_name):
         """ Insert task info at end of Treeview
         """
-        task = self.Task(self.columns, Task=task_name)
-        iid = self.task_list.insert('', index='end', values=task.get_info())
+        now = datetime.datetime.now().strftime('%H:%M')
+        task = self.Task(self.columns, Task=task_name, Start=now)
+        iid = self.table_widget.insert('', index='end', values=task.get_info())
         print(iid)
 
 
