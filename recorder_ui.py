@@ -13,10 +13,10 @@ class TaskRecorder(tk.Frame):
         self.master.title('Hello World!')
 
         # columns name
-        task_name = 'Task'
-        start_time = 'Start'
-        end_time = 'End'
-        elapsed_time = 'Total'
+        task_name = 'task'
+        start_time = 'start'
+        end_time = 'end'
+        elapsed_time = 'total'
         self.columns = (task_name, start_time, end_time, elapsed_time)
 
         self.task = None
@@ -52,13 +52,14 @@ class TaskRecorder(tk.Frame):
             return
 
         self.create_task(text)
-        self.current_task.set(self.task)
+        self.current_task.set_param(self.task)
 
         # Clear text box because make next usage to easier
         self.text_box.delete(0, tk.END)
 
     def end_task(self):
         self.task_list.insert(self.task)
+        self.current_task.set_param()
 
     def delete_task(self):
         index = self.task_list.curselection()
@@ -68,8 +69,8 @@ class TaskRecorder(tk.Frame):
         self.task_list.delete(index)
 
     def create_task(self, task_name):
-        now = datetime.datetime.now().strftime('%H:%M')
-        self.task = Task(self.columns, Task=task_name, Start=now)
+        now = datetime.datetime.now()
+        self.task = Task(self.columns, task=task_name, start=now)
 
 
 class Task(object):
@@ -108,27 +109,34 @@ class CurrentTask(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.task_name = tk.StringVar()
-        self.task_name.set('resting')
-
         self.start = tk.StringVar()
-        now = datetime.datetime.now().strftime('%H:%M')
-        self.start.set(now)
+        self.timer = tk.StringVar()
 
         self.create_widget()
 
     def create_widget(self):
+        self.set_param()
         task_label = tk.Label(self, textvariable=self.task_name)
         task_label.grid(row=0, column=0, columnspan=2)
 
         start_time = tk.Label(self, textvariable=self.start)
         start_time.grid(row=1, column=0)
 
-        timer = tk.Label(self, text='sample timer')
+        timer = tk.Label(self, textvariable=self.timer)
         timer.grid(row=1, column=1)
 
-    def set(self, task):
-        self.task_name.set(task.info['Task'])
-        self.start.set(task.info['Start'])
+    def set_param(self, task=None):
+
+        if task:
+            self.task_name.set(task.info['task'])
+            self.start.set(task.info['start'].strftime('%H:%M'))
+        else:
+            self.task_name.set('resting')
+
+            now = datetime.datetime.now().strftime('%H:%M')
+            self.start.set(now)
+
+            self.timer.set('sample')
 
 
 class TaskList(tk.Frame):
@@ -155,14 +163,16 @@ class TaskList(tk.Frame):
         # Set each columns width that is splitted by the number of columns
         width = 300 // len(self.columns)
         for col in self.columns:
-            self.table_widget.heading(col, text=col)
+            self.table_widget.heading(col, text=col.capitalize())
             self.table_widget.column(col, width=width)
 
     def insert(self, task):
         """ Insert task info at end of Treeview
         """
-        now = datetime.datetime.now().strftime('%H:%M')
-        task.set_info(End=now)
+        now = datetime.datetime.now()
+        delta = now - task.info['start']
+        task.set_info(end=now.strftime('%H:%M'))
+        task.set_info(total=str(delta).split('.')[0])
         self.table_widget.insert('', index='end', values=task.get_all_info())
 
 
