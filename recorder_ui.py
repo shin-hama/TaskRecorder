@@ -23,6 +23,8 @@ class TaskRecorder(tk.Frame):
         self.create_widget()
 
     def create_widget(self):
+        """ Design layout of ui
+        """
         self.current_task = CurrentTask(self)
         self.current_task.grid(row=0, column=0)
 
@@ -61,19 +63,27 @@ class TaskRecorder(tk.Frame):
         self.text_box.delete(0, tk.END)
 
     def create_task(self, task_name):
+        """ Create task with name is inputted in text box
+        """
         now = datetime.datetime.now()
         self.task = Task(self.columns, task=task_name, start=now)
 
     def end_task(self):
+        """ Insert current task to task table and reset task
+        """
         if self.task:
             self.task_list.insert(self.task)
             self.task = None
             self.current_task.set_param()
 
     def delete_task(self):
+        """ Delete selected task from task list
+        """
         self.task_list.delete_selected_items()
 
     def cancel_task(self):
+        """ Reset current task
+        """
         if self.task:
             self.task = None
             self.current_task.set_param()
@@ -84,6 +94,7 @@ class Task(object):
     """
 
     def __init__(self, columns, **kwargs):
+        # TODO: make to singletone
         self.info = {column: None for column in columns}
         if len(kwargs) > 0:
             self.set_info(**kwargs)
@@ -107,6 +118,8 @@ class Task(object):
     def get_all_info(self):
         """ Get task_info values as list
         """
+
+        # Convert datetime to str since datetime is not readable.
         values = [value.strftime('%H:%M')
                   if isinstance(value, datetime.datetime) else value
                   for value in self.info.values()]
@@ -153,9 +166,13 @@ class CurrentTask(tk.Frame):
             self.timer.set('sample')
 
     def update_timer(self):
+        """ Display elapsed time from started task.
+        """
         now = datetime.datetime.now()
         delta = now - self.started_time
+        # remove micro seconds from timedelta object
         self.timer.set(str(delta).split('.')[0])
+        # update timer text for each one second
         self.after(1000, self.update_timer)
 
 
@@ -196,6 +213,8 @@ class TaskList(tk.Frame):
         self.table_widget.insert('', index='end', values=task.get_all_info())
 
     def delete_selected_items(self):
+
+        # Get id of selected rows will be deleted.
         items = self.table_widget.selection()
         for item in items:
             self.table_widget.delete(item)
