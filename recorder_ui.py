@@ -37,10 +37,13 @@ class TaskRecorder(tk.Frame):
 
         end_button = tk.Button(self, text='end', command=self.end_task)
         end_button.grid(row=2, column=1)
+
         delete_button = tk.Button(self, text='delete',
                                   command=self.delete_task)
+        delete_button.grid(row=3, column=0)
 
-        delete_button.grid(row=3)
+        cancel_button = tk.Button(self, text='cancel', command=self.cancel_task)
+        cancel_button.grid(row=3, column=1)
 
     def start_task(self):
         """ Add task data in text box to Treeview
@@ -57,20 +60,23 @@ class TaskRecorder(tk.Frame):
         # Clear text box because make next usage to easier
         self.text_box.delete(0, tk.END)
 
-    def end_task(self):
-        self.task_list.insert(self.task)
-        self.current_task.set_param()
-
-    def delete_task(self):
-        index = self.task_list.curselection()
-        if index == ():
-            print('test')
-            return
-        self.task_list.delete(index)
-
     def create_task(self, task_name):
         now = datetime.datetime.now()
         self.task = Task(self.columns, task=task_name, start=now)
+
+    def end_task(self):
+        if self.task:
+            self.task_list.insert(self.task)
+            self.task = None
+            self.current_task.set_param()
+
+    def delete_task(self):
+        self.task_list.delete_selected_items()
+
+    def cancel_task(self):
+        if self.task:
+            self.task = None
+            self.current_task.set_param()
 
 
 class Task(object):
@@ -101,7 +107,11 @@ class Task(object):
     def get_all_info(self):
         """ Get task_info values as list
         """
-        return [value for value in self.info.values()]
+        values = [value.strftime('%H:%M')
+                  if isinstance(value, datetime.datetime) else value
+                  for value in self.info.values()]
+
+        return values
 
 
 class CurrentTask(tk.Frame):
@@ -111,6 +121,8 @@ class CurrentTask(tk.Frame):
         self.task_name = tk.StringVar()
         self.start = tk.StringVar()
         self.timer = tk.StringVar()
+
+        self.task = None
 
         self.create_widget()
 
@@ -130,6 +142,8 @@ class CurrentTask(tk.Frame):
         if task:
             self.task_name.set(task.info['task'])
             self.start.set(task.info['start'].strftime('%H:%M'))
+            self.started_time = task.info['start']
+            self.update_timer()
         else:
             self.task_name.set('resting')
 
@@ -137,6 +151,12 @@ class CurrentTask(tk.Frame):
             self.start.set(now)
 
             self.timer.set('sample')
+
+    def update_timer(self):
+        now = datetime.datetime.now()
+        delta = now - self.started_time
+        self.timer.set(str(delta).split('.')[0])
+        self.after(1000, self.update_timer)
 
 
 class TaskList(tk.Frame):
@@ -171,9 +191,14 @@ class TaskList(tk.Frame):
         """
         now = datetime.datetime.now()
         delta = now - task.info['start']
-        task.set_info(end=now.strftime('%H:%M'))
+        task.set_info(end=now)
         task.set_info(total=str(delta).split('.')[0])
         self.table_widget.insert('', index='end', values=task.get_all_info())
+
+    def delete_selected_items(self):
+        items = self.table_widget.selection()
+        for item in items:
+            self.table_widget.delete(item)
 
 
 def main():
