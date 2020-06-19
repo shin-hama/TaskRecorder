@@ -26,7 +26,7 @@ class TaskRecorder(tk.Frame):
         """ Design layout of ui
         """
         self.current_task = CurrentTask(self)
-        self.current_task.grid(row=0, column=0)
+        self.current_task.grid(row=0, column=0, columnspan=2)
 
         self.task_list = TaskList(self, self.columns)
         self.task_list.table_widget.grid(row=0, column=2, rowspan=4)
@@ -141,13 +141,16 @@ class CurrentTask(tk.Frame):
 
     def create_widget(self):
         self.set_param()
-        task_label = tk.Label(self, textvariable=self.task_name)
+        task_label = tk.Label(self, textvariable=self.task_name,
+                              font=('', 20))
         task_label.grid(row=0, column=0, columnspan=2)
 
-        start_time = tk.Label(self, textvariable=self.start)
+        start_time = tk.Label(self, textvariable=self.start,
+                              font=('', 12))
         start_time.grid(row=1, column=0)
 
-        timer = tk.Label(self, textvariable=self.timer)
+        timer = tk.Label(self, textvariable=self.timer,
+                         font=('', 12))
         timer.grid(row=1, column=1)
 
     def set_param(self, task=None):
