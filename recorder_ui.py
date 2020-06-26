@@ -3,8 +3,6 @@ import datetime
 import tkinter as tk
 import tkinter.ttk as ttk
 
-STATUS_TEXT = ['waiting..', 'processing']
-
 
 class TaskRecorder(tk.Frame):
 
@@ -29,7 +27,7 @@ class TaskRecorder(tk.Frame):
         self.current_task.grid(row=0, column=0, columnspan=2)
 
         self.task_list = TaskList(self, self.columns)
-        self.task_list.table_widget.grid(row=0, column=2, rowspan=4)
+        self.task_list.grid(row=0, column=2, rowspan=4)
 
         self.text_box = tk.Entry(self)
         self.text_box.grid(row=1, column=0, columnspan=2)
@@ -157,16 +155,15 @@ class CurrentTask(tk.Frame):
 
         if task:
             self.task_name.set(task.info['task'])
-            self.start.set(task.info['start'].strftime('%H:%M'))
             self.started_time = task.info['start']
-            self.update_timer()
         else:
             self.task_name.set('resting')
 
-            now = datetime.datetime.now().strftime('%H:%M')
-            self.start.set(now)
+            now = datetime.datetime.now()
+            self.started_time = now
 
-            self.timer.set('sample')
+        self.start.set(self.started_time.strftime('%H:%M'))
+        self.update_timer()
 
     def update_timer(self):
         """ Display elapsed time from started task.
@@ -189,12 +186,13 @@ class TaskList(tk.Frame):
         # List of finished Task()
         self.task_list = []
 
-        self.create_widget(master)
+        self.create_widget()
 
-    def create_widget(self, master):
-        self.table_widget = ttk.Treeview(master)
+    def create_widget(self):
+        self.table_widget = ttk.Treeview(self)
         self.table_widget['show'] = 'headings'
         self._set_columns()
+        self.table_widget.pack()
 
     def _set_columns(self):
         """ Set columns name of Treeview
